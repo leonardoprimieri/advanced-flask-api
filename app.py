@@ -44,5 +44,24 @@ def logout():
     return jsonify({"message": "User logged out."}), 200
 
 
+@app.route('/user', methods=['POST'])
+def create_user():
+    data = request.json
+    username = data.get('username')
+    password = data.get('password')
+
+    if not username or not password:
+        return jsonify({"message": "Missing username or password."}), 400
+
+    found_user = User.query.filter_by(username=username).first()
+    if found_user:
+        return jsonify({"message": "User already exists."})
+
+    new_user = User(username=username, password=password)
+    db.session.add(new_user)
+    db.session.commit()
+    return jsonify({"message": "User created."})
+
+
 if __name__ == '__main__':
     app.run(debug=True, port=8000)
