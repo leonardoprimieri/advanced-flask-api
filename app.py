@@ -63,5 +63,15 @@ def create_user():
     return jsonify({"message": "User created."})
 
 
+@app.route("/user/<int:user_id>")
+@login_required
+def read_user(user_id):
+    found_user = User.query.get(user_id)
+
+    if not found_user:
+        return jsonify({"message": "User not found."}), 404
+    return jsonify({"username": found_user.username}), 200
+
+
 if __name__ == '__main__':
     app.run(debug=True, port=8000)
