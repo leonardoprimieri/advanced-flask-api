@@ -73,5 +73,22 @@ def read_user(user_id):
     return jsonify({"username": found_user.username}), 200
 
 
+@app.route("/user/update-password/<int:user_id>", methods=['PUT'])
+@login_required
+def update_user(user_id):
+    new_password = request.json.get('password')
+    found_user = User.query.get(user_id)
+
+    if not new_password:
+        return jsonify({"message": "A password is required."})
+
+    if not found_user:
+        return jsonify({"message": "User not found."}), 404
+
+    found_user.password = new_password
+    db.session.commit()
+    return jsonify({"message": "Password successfully changed."})
+
+
 if __name__ == '__main__':
     app.run(debug=True, port=8000)
