@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from flask_login import LoginManager, login_user, logout_user, login_required
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 
 from database import db
 from models.user import User
@@ -75,9 +75,12 @@ def read_user(user_id):
 
 @app.route("/user/update-password/<int:user_id>", methods=['PUT'])
 @login_required
-def update_user(user_id):
+def update_user_password(user_id):
     new_password = request.json.get('password')
     found_user = User.query.get(user_id)
+
+    if current_user.id != found_user.id:
+        return jsonify({"message": "You can only change your own password."})
 
     if not new_password:
         return jsonify({"message": "A password is required."})
@@ -88,6 +91,22 @@ def update_user(user_id):
     found_user.password = new_password
     db.session.commit()
     return jsonify({"message": "Password successfully changed."})
+
+
+@app.route('/user/<int:user_id>', methods=['DELETE'])
+@login_required
+def delete_user(user_id):
+    found_user = User.query.get(user_id)
+
+    if not found_user:
+        return jsonify({"message": "User not found."}), 404
+
+    if current_user.id == found_user.id:
+        return jsonify({"message": "You can't delete your own user."}), 409
+
+    db.session.delete(found_user)
+    db.session.commit()
+    return jsonify({"message": "User successfully deleted."})
 
 
 if __name__ == '__main__':
