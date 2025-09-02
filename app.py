@@ -57,7 +57,7 @@ def create_user():
     if found_user:
         return jsonify({"message": "User already exists."})
 
-    new_user = User(username=username, password=password)
+    new_user = User(username=username, password=password, role='user')
     db.session.add(new_user)
     db.session.commit()
     return jsonify({"message": "User created."})
@@ -79,11 +79,14 @@ def update_user_password(user_id):
     new_password = request.json.get('password')
     found_user = User.query.get(user_id)
 
-    if current_user.id != found_user.id:
-        return jsonify({"message": "You can only change your own password."})
+    same_user = current_user.id == found_user.id
+
+    if not same_user:
+        if current_user.role == 'user':
+            return jsonify({"message": "You don't have permission to perform this action."}), 403
 
     if not new_password:
-        return jsonify({"message": "A password is required."})
+        return jsonify({"message": "A password is required."}), 403
 
     if not found_user:
         return jsonify({"message": "User not found."}), 404
