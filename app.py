@@ -83,7 +83,7 @@ def update_user_password(user_id):
 
     if not same_user:
         if current_user.role == 'user':
-            return jsonify({"message": "You don't have permission to perform this action."}), 403
+            return jsonify({"message": "You don't have permission to perform this action."}), 401
 
     if not new_password:
         return jsonify({"message": "A password is required."}), 403
@@ -100,6 +100,9 @@ def update_user_password(user_id):
 @login_required
 def delete_user(user_id):
     found_user = User.query.get(user_id)
+
+    if current_user.role != 'admin':
+        return jsonify({"message": "You don't have permission to perform this action."}), 401
 
     if not found_user:
         return jsonify({"message": "User not found."}), 404
